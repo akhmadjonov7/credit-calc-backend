@@ -21,6 +21,12 @@ import java.util.Optional;
 @Service
 public class CalcService {
     public List<CreditResponseBean> calc(CreditBean bean) {
+        CurrencyBean currency = new CurrencyBean();
+        if (bean.getCurrency_id() != 1) currency = getCurrencies(bean.getCurrency_id());
+        else {
+            currency.setId(1);
+            currency.setRate(1D);
+        }
         List<CreditResponseBean> list = new ArrayList<>();
         Double monthly_interest_rate = (bean.getAnnual_interest_rate() / 1200);
         Double debt = Double.valueOf(bean.getAmount());
@@ -35,8 +41,8 @@ public class CalcService {
             }
             if (i == 0) {
                 Double commission = bean.getCommission() != 0D ? debt * (bean.getCommission() / 100) : 0d;
-                Double third_party_costs = getByCurrency((double) (bean.getInsurance() + bean.getNotary() + bean.getValuation_of_collateral()), bean.getCurrency_id());
-                Double other = getByCurrency(Double.valueOf(bean.getOther()), bean.getCurrency_id());
+                Double third_party_costs = getByCurrency((double) (bean.getInsurance() + bean.getNotary() + bean.getValuation_of_collateral()), currency);
+                Double other = getByCurrency(Double.valueOf(bean.getOther()), currency);
                 Double total = total_monthly_debt + commission + third_party_costs + other;
                 list.add(CreditResponseBean.builder()
                         .month(i + 1)
@@ -96,9 +102,8 @@ public class CalcService {
         }
     }
 
-    public Double getByCurrency(Double amount, Integer currency_id) {
-        if (currency_id == 1) return amount;
-        CurrencyBean currency =  getCurrencies(currency_id);
+    public Double getByCurrency(Double amount, CurrencyBean currency) {
+        if (currency.getId() == 1) return amount;
         return amount / currency.getRate();
     }
 }
