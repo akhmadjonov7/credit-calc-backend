@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: credit_calc
+server:
+  port: 8080
